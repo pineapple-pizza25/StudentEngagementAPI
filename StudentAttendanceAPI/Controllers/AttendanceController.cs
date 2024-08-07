@@ -1,15 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using StudentAttendanceAPI.Models;
 
 namespace StudentAttendanceAPI.Controllers
 {
-    public class AttendanceController : Controller
+    [Route("api/[controller]")]
+    [ApiController]
+    public class AttendanceController : ControllerBase
     {
         private readonly StudentengagementContext _context;
 
@@ -18,15 +18,16 @@ namespace StudentAttendanceAPI.Controllers
             _context = context;
         }
 
-        // GET: Attendance
-        public async Task<IActionResult> Index()
+        // GET: api/Attendance
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<Attendance>>> GetAttendances()
         {
-            var studentengagementContext = _context.Attendances.Include(a => a.Lesson).Include(a => a.Student);
-            return View(await studentengagementContext.ToListAsync());
+            return await _context.Attendances.Include(a => a.Lesson).Include(a => a.Student).ToListAsync();
         }
 
-        // GET: Attendance/Details/5
-        public async Task<IActionResult> Details(int? id)
+        // GET: api/Attendance/5
+        [HttpGet("{id}")]
+        public async Task<ActionResult<Attendance>> GetAttendance(int id)
         {
             if (id == null)
             {
@@ -37,68 +38,36 @@ namespace StudentAttendanceAPI.Controllers
                 .Include(a => a.Lesson)
                 .Include(a => a.Student)
                 .FirstOrDefaultAsync(m => m.Id == id);
+
             if (attendance == null)
             {
                 return NotFound();
             }
 
-            return View(attendance);
+            return attendance;
         }
 
-        // GET: Attendance/Create
-        public IActionResult Create()
-        {
-            ViewData["LessonId"] = new SelectList(_context.Lessons, "Id", "Id");
-            ViewData["StudentId"] = new SelectList(_context.Students, "StudentId", "StudentId");
-            return View();
-        }
-
-        // POST: Attendance/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        // POST: api/Attendance
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,LessonId,StudentId,DurationMinutes")] Attendance attendance)
+        public async Task<ActionResult<Attendance>> CreateAttendance([FromBody] Attendance attendance)
         {
             if (ModelState.IsValid)
             {
                 _context.Add(attendance);
                 await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                return CreatedAtAction(nameof(GetAttendance), new { id = attendance.Id }, attendance);
             }
-            ViewData["LessonId"] = new SelectList(_context.Lessons, "Id", "Id", attendance.LessonId);
-            ViewData["StudentId"] = new SelectList(_context.Students, "StudentId", "StudentId", attendance.StudentId);
-            return View(attendance);
+
+            return BadRequest(ModelState);
         }
 
-        // GET: Attendance/Edit/5
-        public async Task<IActionResult> Edit(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var attendance = await _context.Attendances.FindAsync(id);
-            if (attendance == null)
-            {
-                return NotFound();
-            }
-            ViewData["LessonId"] = new SelectList(_context.Lessons, "Id", "Id", attendance.LessonId);
-            ViewData["StudentId"] = new SelectList(_context.Students, "StudentId", "StudentId", attendance.StudentId);
-            return View(attendance);
-        }
-
-        // POST: Attendance/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,LessonId,StudentId,DurationMinutes")] Attendance attendance)
+        // PUT: api/Attendance/5
+        [HttpPut("{id}")]
+        public async Task<IActionResult> EditAttendance(int id, [FromBody] Attendance attendance)
         {
             if (id != attendance.Id)
             {
-                return NotFound();
+                return BadRequest();
             }
 
             if (ModelState.IsValid)
@@ -119,15 +88,15 @@ namespace StudentAttendanceAPI.Controllers
                         throw;
                     }
                 }
-                return RedirectToAction(nameof(Index));
+                return NoContent();
             }
-            ViewData["LessonId"] = new SelectList(_context.Lessons, "Id", "Id", attendance.LessonId);
-            ViewData["StudentId"] = new SelectList(_context.Students, "StudentId", "StudentId", attendance.StudentId);
-            return View(attendance);
+
+            return BadRequest(ModelState);
         }
 
-        // GET: Attendance/Delete/5
-        public async Task<IActionResult> Delete(int? id)
+        // DELETE: api/Attendance/5
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteAttendance(int id)
         {
             if (id == null)
             {
@@ -138,27 +107,16 @@ namespace StudentAttendanceAPI.Controllers
                 .Include(a => a.Lesson)
                 .Include(a => a.Student)
                 .FirstOrDefaultAsync(m => m.Id == id);
+
             if (attendance == null)
             {
                 return NotFound();
             }
 
-            return View(attendance);
-        }
-
-        // POST: Attendance/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
-        {
-            var attendance = await _context.Attendances.FindAsync(id);
-            if (attendance != null)
-            {
-                _context.Attendances.Remove(attendance);
-            }
-
+            _context.Attendances.Remove(attendance);
             await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+
+            return NoContent();
         }
 
         private bool AttendanceExists(int id)

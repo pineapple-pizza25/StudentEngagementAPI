@@ -11,5 +11,7 @@ public partial class Course
 
     public int Duration { get; set; }
 
+    public bool Deprecated { get; set; }
+
     public virtual ICollection<Subject> Subjects { get; set; } = new List<Subject>();
 }

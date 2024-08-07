@@ -11,7 +11,7 @@ public partial class Campus
 
     public string Address { get; set; } = null!;
 
-    public virtual ICollection<Admin> Admins { get; set; } = new List<Admin>();
+    public virtual ICollection<Administrator> Administrators { get; set; } = new List<Administrator>();
 
     public virtual ICollection<Classroom> Classrooms { get; set; } = new List<Classroom>();
 

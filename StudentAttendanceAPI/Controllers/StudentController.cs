@@ -1,15 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using StudentAttendanceAPI.Models;
 
 namespace StudentAttendanceAPI.Controllers
 {
-    public class StudentController : Controller
+    [Route("api/[controller]")]
+    [ApiController]
+    public class StudentController : ControllerBase
     {
         private readonly StudentengagementContext _context;
 
@@ -18,83 +18,55 @@ namespace StudentAttendanceAPI.Controllers
             _context = context;
         }
 
-        // GET: Student
-        public async Task<IActionResult> Index()
+        // GET: api/Students
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<Student>>> GetStudents()
         {
-            var studentengagementContext = _context.Students.Include(s => s.Campus);
-            return View(await studentengagementContext.ToListAsync());
+            return await _context.Students.Include(s => s.Campus).ToListAsync();
         }
 
-        // GET: Student/Details/5
-        public async Task<IActionResult> Details(string id)
+        // GET: api/Students/5
+        [HttpGet("{id}")]
+        public async Task<ActionResult<Student>> GetStudent(string id)
         {
             if (id == null)
             {
-                return NotFound();
+                return BadRequest("Student ID is required.");
             }
 
             var student = await _context.Students
                 .Include(s => s.Campus)
                 .FirstOrDefaultAsync(m => m.StudentId == id);
+
             if (student == null)
             {
                 return NotFound();
             }
 
-            return View(student);
+            return student;
         }
 
-        // GET: Student/Create
-        public IActionResult Create()
-        {
-            ViewData["CampusId"] = new SelectList(_context.Campuses, "Id", "Id");
-            return View();
-        }
-
-        // POST: Student/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        // POST: api/Students
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("StudentId,FirstName,LastName,PhoneNumber,Email,DateOfBirth,CampusId")] Student student)
+        public async Task<ActionResult<Student>> CreateStudent([FromBody] Student student)
         {
             if (ModelState.IsValid)
             {
                 _context.Add(student);
                 await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                return CreatedAtAction(nameof(GetStudent), new { id = student.StudentId }, student);
             }
-            ViewData["CampusId"] = new SelectList(_context.Campuses, "Id", "Id", student.CampusId);
-            return View(student);
+
+            return BadRequest(ModelState);
         }
 
-        // GET: Student/Edit/5
-        public async Task<IActionResult> Edit(string id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var student = await _context.Students.FindAsync(id);
-            if (student == null)
-            {
-                return NotFound();
-            }
-            ViewData["CampusId"] = new SelectList(_context.Campuses, "Id", "Id", student.CampusId);
-            return View(student);
-        }
-
-        // POST: Student/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(string id, [Bind("StudentId,FirstName,LastName,PhoneNumber,Email,DateOfBirth,CampusId")] Student student)
+        // PUT: api/Students/5
+        [HttpPut("{id}")]
+        public async Task<IActionResult> EditStudent(string id, [FromBody] Student student)
         {
             if (id != student.StudentId)
             {
-                return NotFound();
+                return BadRequest("Student ID mismatch.");
             }
 
             if (ModelState.IsValid)
@@ -115,44 +87,26 @@ namespace StudentAttendanceAPI.Controllers
                         throw;
                     }
                 }
-                return RedirectToAction(nameof(Index));
+                return NoContent();
             }
-            ViewData["CampusId"] = new SelectList(_context.Campuses, "Id", "Id", student.CampusId);
-            return View(student);
+
+            return BadRequest(ModelState);
         }
 
-        // GET: Student/Delete/5
-        public async Task<IActionResult> Delete(string id)
+        // DELETE: api/Students/5
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteStudent(string id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var student = await _context.Students
-                .Include(s => s.Campus)
-                .FirstOrDefaultAsync(m => m.StudentId == id);
+            var student = await _context.Students.FindAsync(id);
             if (student == null)
             {
                 return NotFound();
             }
 
-            return View(student);
-        }
-
-        // POST: Student/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(string id)
-        {
-            var student = await _context.Students.FindAsync(id);
-            if (student != null)
-            {
-                _context.Students.Remove(student);
-            }
-
+            _context.Students.Remove(student);
             await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+
+            return NoContent();
         }
 
         private bool StudentExists(string id)

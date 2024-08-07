@@ -1,15 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using StudentAttendanceAPI.Models;
 
 namespace StudentAttendanceAPI.Controllers
 {
-    public class LecturerController : Controller
+    [Route("api/[controller]")]
+    [ApiController]
+    public class LecturerController : ControllerBase
     {
         private readonly StudentengagementContext _context;
 
@@ -18,15 +18,16 @@ namespace StudentAttendanceAPI.Controllers
             _context = context;
         }
 
-        // GET: Lecturer
-        public async Task<IActionResult> Index()
+        // GET: api/Lecturers
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<Lecturer>>> GetLecturers()
         {
-            var studentengagementContext = _context.Lecturers.Include(l => l.Campus);
-            return View(await studentengagementContext.ToListAsync());
+            return await _context.Lecturers.Include(l => l.Campus).ToListAsync();
         }
 
-        // GET: Lecturer/Details/5
-        public async Task<IActionResult> Details(string id)
+        // GET: api/Lecturers/5
+        [HttpGet("{id}")]
+        public async Task<ActionResult<Lecturer>> GetLecturer(string id)
         {
             if (id == null)
             {
@@ -41,60 +42,30 @@ namespace StudentAttendanceAPI.Controllers
                 return NotFound();
             }
 
-            return View(lecturer);
+            return lecturer;
         }
 
-        // GET: Lecturer/Create
-        public IActionResult Create()
-        {
-            ViewData["CampusId"] = new SelectList(_context.Campuses, "Id", "Id");
-            return View();
-        }
-
-        // POST: Lecturer/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        // POST: api/Lecturers
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("LecturerId,FirstName,LastName,PhoneNumber,Email,DateOfBirth,CampusId")] Lecturer lecturer)
+        public async Task<ActionResult<Lecturer>> CreateLecturer([FromBody] Lecturer lecturer)
         {
             if (ModelState.IsValid)
             {
                 _context.Add(lecturer);
                 await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                return CreatedAtAction(nameof(GetLecturer), new { id = lecturer.LecturerId }, lecturer);
             }
-            ViewData["CampusId"] = new SelectList(_context.Campuses, "Id", "Id", lecturer.CampusId);
-            return View(lecturer);
+
+            return BadRequest(ModelState);
         }
 
-        // GET: Lecturer/Edit/5
-        public async Task<IActionResult> Edit(string id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var lecturer = await _context.Lecturers.FindAsync(id);
-            if (lecturer == null)
-            {
-                return NotFound();
-            }
-            ViewData["CampusId"] = new SelectList(_context.Campuses, "Id", "Id", lecturer.CampusId);
-            return View(lecturer);
-        }
-
-        // POST: Lecturer/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(string id, [Bind("LecturerId,FirstName,LastName,PhoneNumber,Email,DateOfBirth,CampusId")] Lecturer lecturer)
+        // PUT: api/Lecturers/5
+        [HttpPut("{id}")]
+        public async Task<IActionResult> EditLecturer(string id, [FromBody] Lecturer lecturer)
         {
             if (id != lecturer.LecturerId)
             {
-                return NotFound();
+                return BadRequest();
             }
 
             if (ModelState.IsValid)
@@ -115,14 +86,15 @@ namespace StudentAttendanceAPI.Controllers
                         throw;
                     }
                 }
-                return RedirectToAction(nameof(Index));
+                return NoContent();
             }
-            ViewData["CampusId"] = new SelectList(_context.Campuses, "Id", "Id", lecturer.CampusId);
-            return View(lecturer);
+
+            return BadRequest(ModelState);
         }
 
-        // GET: Lecturer/Delete/5
-        public async Task<IActionResult> Delete(string id)
+        // DELETE: api/Lecturers/5
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteLecturer(string id)
         {
             if (id == null)
             {
@@ -137,22 +109,10 @@ namespace StudentAttendanceAPI.Controllers
                 return NotFound();
             }
 
-            return View(lecturer);
-        }
-
-        // POST: Lecturer/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(string id)
-        {
-            var lecturer = await _context.Lecturers.FindAsync(id);
-            if (lecturer != null)
-            {
-                _context.Lecturers.Remove(lecturer);
-            }
-
+            _context.Lecturers.Remove(lecturer);
             await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+
+            return NoContent();
         }
 
         private bool LecturerExists(string id)

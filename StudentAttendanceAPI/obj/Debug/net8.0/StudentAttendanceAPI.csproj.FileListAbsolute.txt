@@ -229,5 +229,6 @@ C:\Users\snmis\source\repos\StudentAttendanceAPI\StudentAttendanceAPI\bin\Debug\
 C:\Users\snmis\source\repos\StudentAttendanceAPI\StudentAttendanceAPI\bin\Debug\net8.0\runtimes\win\lib\net7.0\System.Drawing.Common.dll
 C:\Users\snmis\source\repos\StudentAttendanceAPI\StudentAttendanceAPI\bin\Debug\net8.0\runtimes\win\lib\net7.0\System.Security.Cryptography.ProtectedData.dll
 C:\Users\snmis\source\repos\StudentAttendanceAPI\StudentAttendanceAPI\bin\Debug\net8.0\runtimes\win\lib\net7.0\System.Windows.Extensions.dll
+C:\Users\snmis\source\repos\StudentAttendanceAPI\StudentAttendanceAPI\obj\Debug\net8.0\StudentAttendanceAPI.sourcelink.json
 C:\Users\snmis\source\repos\StudentAttendanceAPI\StudentAttendanceAPI\obj\Debug\net8.0\StudentAttendanceAPI.RazorAssemblyInfo.cache
 C:\Users\snmis\source\repos\StudentAttendanceAPI\StudentAttendanceAPI\obj\Debug\net8.0\StudentAttendanceAPI.RazorAssemblyInfo.cs

@@ -3,9 +3,9 @@ using System.Collections.Generic;
 
 namespace StudentAttendanceAPI.Models;
 
-public partial class Admin
+public partial class Administrator
 {
-    public string AdminId { get; set; } = null!;
+    public string AdministratorId { get; set; } = null!;
 
     public string FirstName { get; set; } = null!;
 

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace StudentAttendanceAPI.Models;
 
-public partial class StudentModule
+public partial class StudentSubject
 {
     public int Id { get; set; }
 

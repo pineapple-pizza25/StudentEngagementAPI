@@ -1,15 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using StudentAttendanceAPI.Models;
 
 namespace StudentAttendanceAPI.Controllers
 {
-    public class ClassroomController : Controller
+    [Route("api/[controller]")]
+    [ApiController]
+    public class ClassroomController : ControllerBase
     {
         private readonly StudentengagementContext _context;
 
@@ -18,15 +18,16 @@ namespace StudentAttendanceAPI.Controllers
             _context = context;
         }
 
-        // GET: Classroom
-        public async Task<IActionResult> Index()
+        // GET: api/Classrooms
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<Classroom>>> GetClassrooms()
         {
-            var studentengagementContext = _context.Classrooms.Include(c => c.Campus);
-            return View(await studentengagementContext.ToListAsync());
+            return await _context.Classrooms.Include(c => c.Campus).ToListAsync();
         }
 
-        // GET: Classroom/Details/5
-        public async Task<IActionResult> Details(int? id)
+        // GET: api/Classrooms/5
+        [HttpGet("{id}")]
+        public async Task<ActionResult<Classroom>> GetClassroom(int id)
         {
             if (id == null)
             {
@@ -36,65 +37,36 @@ namespace StudentAttendanceAPI.Controllers
             var classroom = await _context.Classrooms
                 .Include(c => c.Campus)
                 .FirstOrDefaultAsync(m => m.Id == id);
+
             if (classroom == null)
             {
                 return NotFound();
             }
 
-            return View(classroom);
+            return classroom;
         }
 
-        // GET: Classroom/Create
-        public IActionResult Create()
-        {
-            ViewData["CampusId"] = new SelectList(_context.Campuses, "Id", "Id");
-            return View();
-        }
-
-        // POST: Classroom/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        // POST: api/Classrooms
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,RoomNumber,CampusId")] Classroom classroom)
+        public async Task<ActionResult<Classroom>> CreateClassroom([FromBody] Classroom classroom)
         {
             if (ModelState.IsValid)
             {
                 _context.Add(classroom);
                 await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                return CreatedAtAction(nameof(GetClassroom), new { id = classroom.Id }, classroom);
             }
-            ViewData["CampusId"] = new SelectList(_context.Campuses, "Id", "Id", classroom.CampusId);
-            return View(classroom);
+
+            return BadRequest(ModelState);
         }
 
-        // GET: Classroom/Edit/5
-        public async Task<IActionResult> Edit(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var classroom = await _context.Classrooms.FindAsync(id);
-            if (classroom == null)
-            {
-                return NotFound();
-            }
-            ViewData["CampusId"] = new SelectList(_context.Campuses, "Id", "Id", classroom.CampusId);
-            return View(classroom);
-        }
-
-        // POST: Classroom/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,RoomNumber,CampusId")] Classroom classroom)
+        // PUT: api/Classrooms/5
+        [HttpPut("{id}")]
+        public async Task<IActionResult> EditClassroom(int id, [FromBody] Classroom classroom)
         {
             if (id != classroom.Id)
             {
-                return NotFound();
+                return BadRequest();
             }
 
             if (ModelState.IsValid)
@@ -115,14 +87,15 @@ namespace StudentAttendanceAPI.Controllers
                         throw;
                     }
                 }
-                return RedirectToAction(nameof(Index));
+                return NoContent();
             }
-            ViewData["CampusId"] = new SelectList(_context.Campuses, "Id", "Id", classroom.CampusId);
-            return View(classroom);
+
+            return BadRequest(ModelState);
         }
 
-        // GET: Classroom/Delete/5
-        public async Task<IActionResult> Delete(int? id)
+        // DELETE: api/Classrooms/5
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteClassroom(int id)
         {
             if (id == null)
             {
@@ -132,27 +105,16 @@ namespace StudentAttendanceAPI.Controllers
             var classroom = await _context.Classrooms
                 .Include(c => c.Campus)
                 .FirstOrDefaultAsync(m => m.Id == id);
+
             if (classroom == null)
             {
                 return NotFound();
             }
 
-            return View(classroom);
-        }
-
-        // POST: Classroom/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
-        {
-            var classroom = await _context.Classrooms.FindAsync(id);
-            if (classroom != null)
-            {
-                _context.Classrooms.Remove(classroom);
-            }
-
+            _context.Classrooms.Remove(classroom);
             await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+
+            return NoContent();
         }
 
         private bool ClassroomExists(int id)

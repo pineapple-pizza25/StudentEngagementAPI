@@ -1,15 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using StudentAttendanceAPI.Models;
 
 namespace StudentAttendanceAPI.Controllers
 {
-    public class StudentCourseController : Controller
+    [Route("api/[controller]")]
+    [ApiController]
+    public class StudentCourseController : ControllerBase
     {
         private readonly StudentengagementContext _context;
 
@@ -18,87 +18,51 @@ namespace StudentAttendanceAPI.Controllers
             _context = context;
         }
 
-        // GET: StudentCourse
-        public async Task<IActionResult> Index()
+        // GET: api/StudentCourses
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<StudentCourse>>> GetStudentCourses()
         {
-            var studentengagementContext = _context.StudentCourses.Include(s => s.ModuleCodeNavigation).Include(s => s.Student);
-            return View(await studentengagementContext.ToListAsync());
+            return await _context.StudentCourses.Include(s => s.ModuleCodeNavigation).Include(s => s.Student).ToListAsync();
         }
 
-        // GET: StudentCourse/Details/5
-        public async Task<IActionResult> Details(int? id)
+        // GET: api/StudentCourses/5
+        [HttpGet("{id}")]
+        public async Task<ActionResult<StudentCourse>> GetStudentCourse(int id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
             var studentCourse = await _context.StudentCourses
                 .Include(s => s.ModuleCodeNavigation)
                 .Include(s => s.Student)
                 .FirstOrDefaultAsync(m => m.Id == id);
+
             if (studentCourse == null)
             {
                 return NotFound();
             }
 
-            return View(studentCourse);
+            return studentCourse;
         }
 
-        // GET: StudentCourse/Create
-        public IActionResult Create()
-        {
-            ViewData["ModuleCode"] = new SelectList(_context.Subjects, "SubjectCode", "SubjectCode");
-            ViewData["StudentId"] = new SelectList(_context.Students, "StudentId", "StudentId");
-            return View();
-        }
-
-        // POST: StudentCourse/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        // POST: api/StudentCourses
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,StudentId,ModuleCode")] StudentCourse studentCourse)
+        public async Task<ActionResult<StudentCourse>> CreateStudentCourse([FromBody] StudentCourse studentCourse)
         {
             if (ModelState.IsValid)
             {
                 _context.Add(studentCourse);
                 await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                return CreatedAtAction(nameof(GetStudentCourse), new { id = studentCourse.Id }, studentCourse);
             }
-            ViewData["ModuleCode"] = new SelectList(_context.Subjects, "SubjectCode", "SubjectCode", studentCourse.ModuleCode);
-            ViewData["StudentId"] = new SelectList(_context.Students, "StudentId", "StudentId", studentCourse.StudentId);
-            return View(studentCourse);
+
+            return BadRequest(ModelState);
         }
 
-        // GET: StudentCourse/Edit/5
-        public async Task<IActionResult> Edit(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var studentCourse = await _context.StudentCourses.FindAsync(id);
-            if (studentCourse == null)
-            {
-                return NotFound();
-            }
-            ViewData["ModuleCode"] = new SelectList(_context.Subjects, "SubjectCode", "SubjectCode", studentCourse.ModuleCode);
-            ViewData["StudentId"] = new SelectList(_context.Students, "StudentId", "StudentId", studentCourse.StudentId);
-            return View(studentCourse);
-        }
-
-        // POST: StudentCourse/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,StudentId,ModuleCode")] StudentCourse studentCourse)
+        // PUT: api/StudentCourses/5
+        [HttpPut("{id}")]
+        public async Task<IActionResult> EditStudentCourse(int id, [FromBody] StudentCourse studentCourse)
         {
             if (id != studentCourse.Id)
             {
-                return NotFound();
+                return BadRequest("StudentCourse ID mismatch.");
             }
 
             if (ModelState.IsValid)
@@ -119,46 +83,26 @@ namespace StudentAttendanceAPI.Controllers
                         throw;
                     }
                 }
-                return RedirectToAction(nameof(Index));
+                return NoContent();
             }
-            ViewData["ModuleCode"] = new SelectList(_context.Subjects, "SubjectCode", "SubjectCode", studentCourse.ModuleCode);
-            ViewData["StudentId"] = new SelectList(_context.Students, "StudentId", "StudentId", studentCourse.StudentId);
-            return View(studentCourse);
+
+            return BadRequest(ModelState);
         }
 
-        // GET: StudentCourse/Delete/5
-        public async Task<IActionResult> Delete(int? id)
+        // DELETE: api/StudentCourses/5
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteStudentCourse(int id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var studentCourse = await _context.StudentCourses
-                .Include(s => s.ModuleCodeNavigation)
-                .Include(s => s.Student)
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var studentCourse = await _context.StudentCourses.FindAsync(id);
             if (studentCourse == null)
             {
                 return NotFound();
             }
 
-            return View(studentCourse);
-        }
-
-        // POST: StudentCourse/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
-        {
-            var studentCourse = await _context.StudentCourses.FindAsync(id);
-            if (studentCourse != null)
-            {
-                _context.StudentCourses.Remove(studentCourse);
-            }
-
+            _context.StudentCourses.Remove(studentCourse);
             await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+
+            return NoContent();
         }
 
         private bool StudentCourseExists(int id)

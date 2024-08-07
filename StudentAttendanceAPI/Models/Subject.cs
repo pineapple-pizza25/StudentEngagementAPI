@@ -13,6 +13,8 @@ public partial class Subject
 
     public int Credits { get; set; }
 
+    public bool Deprecated { get; set; }
+
     public string CourseId { get; set; } = null!;
 
     public virtual Course Course { get; set; } = null!;
@@ -21,5 +23,5 @@ public partial class Subject
 
     public virtual ICollection<StudentCourse> StudentCourses { get; set; } = new List<StudentCourse>();
 
-    public virtual ICollection<StudentModule> StudentModules { get; set; } = new List<StudentModule>();
+    public virtual ICollection<StudentSubject> StudentSubjects { get; set; } = new List<StudentSubject>();
 }

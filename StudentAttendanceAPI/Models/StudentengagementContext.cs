@@ -15,7 +15,7 @@ public partial class StudentengagementContext : DbContext
     {
     }
 
-    public virtual DbSet<Admin> Admins { get; set; }
+    public virtual DbSet<Administrator> Administrators { get; set; }
 
     public virtual DbSet<Attendance> Attendances { get; set; }
 
@@ -33,7 +33,7 @@ public partial class StudentengagementContext : DbContext
 
     public virtual DbSet<StudentCourse> StudentCourses { get; set; }
 
-    public virtual DbSet<StudentModule> StudentModules { get; set; }
+    public virtual DbSet<StudentSubject> StudentSubjects { get; set; }
 
     public virtual DbSet<Subject> Subjects { get; set; }
 
@@ -43,15 +43,15 @@ public partial class StudentengagementContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<Admin>(entity =>
+        modelBuilder.Entity<Administrator>(entity =>
         {
-            entity.HasKey(e => e.AdminId).HasName("admin_pkey");
+            entity.HasKey(e => e.AdministratorId).HasName("administrator_pkey");
 
-            entity.ToTable("admin");
+            entity.ToTable("administrator");
 
-            entity.Property(e => e.AdminId)
+            entity.Property(e => e.AdministratorId)
                 .HasMaxLength(50)
-                .HasColumnName("admin_id");
+                .HasColumnName("administrator_id");
             entity.Property(e => e.CampusId).HasColumnName("campus_id");
             entity.Property(e => e.DateOfBirth).HasColumnName("date_of_birth");
             entity.Property(e => e.Email)
@@ -67,9 +67,9 @@ public partial class StudentengagementContext : DbContext
                 .HasMaxLength(10)
                 .HasColumnName("phone_number");
 
-            entity.HasOne(d => d.Campus).WithMany(p => p.Admins)
+            entity.HasOne(d => d.Campus).WithMany(p => p.Administrators)
                 .HasForeignKey(d => d.CampusId)
-                .HasConstraintName("admin_campus_id_fkey");
+                .HasConstraintName("administrator_campus_id_fkey");
         });
 
         modelBuilder.Entity<Attendance>(entity =>
@@ -147,6 +147,7 @@ public partial class StudentengagementContext : DbContext
             entity.Property(e => e.CourseName)
                 .HasMaxLength(50)
                 .HasColumnName("course_name");
+            entity.Property(e => e.Deprecated).HasColumnName("deprecated");
             entity.Property(e => e.Duration).HasColumnName("duration");
         });
 
@@ -273,11 +274,11 @@ public partial class StudentengagementContext : DbContext
                 .HasConstraintName("student_course_student_id_fkey");
         });
 
-        modelBuilder.Entity<StudentModule>(entity =>
+        modelBuilder.Entity<StudentSubject>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("student_module_pkey");
+            entity.HasKey(e => e.Id).HasName("student_subject_pkey");
 
-            entity.ToTable("student_module");
+            entity.ToTable("student_subject");
 
             entity.Property(e => e.Id)
                 .ValueGeneratedNever()
@@ -289,15 +290,15 @@ public partial class StudentengagementContext : DbContext
                 .HasMaxLength(8)
                 .HasColumnName("subject_code");
 
-            entity.HasOne(d => d.Student).WithMany(p => p.StudentModules)
+            entity.HasOne(d => d.Student).WithMany(p => p.StudentSubjects)
                 .HasForeignKey(d => d.StudentId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("student_module_student_id_fkey");
+                .HasConstraintName("student_subject_student_id_fkey");
 
-            entity.HasOne(d => d.SubjectCodeNavigation).WithMany(p => p.StudentModules)
+            entity.HasOne(d => d.SubjectCodeNavigation).WithMany(p => p.StudentSubjects)
                 .HasForeignKey(d => d.SubjectCode)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("student_module_subject_code_fkey");
+                .HasConstraintName("student_subject_subject_code_fkey");
         });
 
         modelBuilder.Entity<Subject>(entity =>
@@ -313,6 +314,7 @@ public partial class StudentengagementContext : DbContext
                 .HasMaxLength(50)
                 .HasColumnName("course_id");
             entity.Property(e => e.Credits).HasColumnName("credits");
+            entity.Property(e => e.Deprecated).HasColumnName("deprecated");
             entity.Property(e => e.NqfLevel).HasColumnName("nqf_level");
             entity.Property(e => e.SubjectName)
                 .HasMaxLength(50)

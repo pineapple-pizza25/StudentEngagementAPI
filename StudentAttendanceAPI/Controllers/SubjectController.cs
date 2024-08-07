@@ -1,15 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using StudentAttendanceAPI.Models;
 
 namespace StudentAttendanceAPI.Controllers
 {
-    public class SubjectController : Controller
+    [Route("api/[controller]")]
+    [ApiController]
+    public class SubjectController : ControllerBase
     {
         private readonly StudentengagementContext _context;
 
@@ -18,141 +18,92 @@ namespace StudentAttendanceAPI.Controllers
             _context = context;
         }
 
-        // GET: Subject
-        public async Task<IActionResult> Index()
+        // GET: api/Subject
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<Subject>>> GetSubjects()
         {
-            var studentengagementContext = _context.Subjects.Include(s => s.Course);
-            return View(await studentengagementContext.ToListAsync());
+            return await _context.Subjects.Include(s => s.Course).ToListAsync();
         }
 
-        // GET: Subject/Details/5
-        public async Task<IActionResult> Details(string id)
+        // GET: api/Subject/5
+        [HttpGet("{id}")]
+        public async Task<ActionResult<Subject>> GetSubject(string id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
             var subject = await _context.Subjects
                 .Include(s => s.Course)
                 .FirstOrDefaultAsync(m => m.SubjectCode == id);
+
             if (subject == null)
             {
                 return NotFound();
             }
 
-            return View(subject);
+            return subject;
         }
 
-        // GET: Subject/Create
-        public IActionResult Create()
-        {
-            ViewData["CourseId"] = new SelectList(_context.Courses, "Id", "Id");
-            return View();
-        }
-
-        // POST: Subject/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        // POST: api/Subject
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("SubjectCode,SubjectName,NqfLevel,Credits,CourseId")] Subject subject)
+        public async Task<ActionResult<Subject>> CreateSubject([FromBody] Subject subject)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                _context.Add(subject);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                return BadRequest(ModelState);
             }
-            ViewData["CourseId"] = new SelectList(_context.Courses, "Id", "Id", subject.CourseId);
-            return View(subject);
+
+            _context.Add(subject);
+            await _context.SaveChangesAsync();
+
+            return CreatedAtAction(nameof(GetSubject), new { id = subject.SubjectCode }, subject);
         }
 
-        // GET: Subject/Edit/5
-        public async Task<IActionResult> Edit(string id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var subject = await _context.Subjects.FindAsync(id);
-            if (subject == null)
-            {
-                return NotFound();
-            }
-            ViewData["CourseId"] = new SelectList(_context.Courses, "Id", "Id", subject.CourseId);
-            return View(subject);
-        }
-
-        // POST: Subject/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(string id, [Bind("SubjectCode,SubjectName,NqfLevel,Credits,CourseId")] Subject subject)
+        // PUT: api/Subject/5
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateSubject(string id, [FromBody] Subject subject)
         {
             if (id != subject.SubjectCode)
             {
-                return NotFound();
+                return BadRequest("SubjectCode mismatch.");
             }
 
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                try
-                {
-                    _context.Update(subject);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!SubjectExists(subject.SubjectCode))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
+                return BadRequest(ModelState);
             }
-            ViewData["CourseId"] = new SelectList(_context.Courses, "Id", "Id", subject.CourseId);
-            return View(subject);
+
+            try
+            {
+                _context.Update(subject);
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!SubjectExists(subject.SubjectCode))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return NoContent();
         }
 
-        // GET: Subject/Delete/5
-        public async Task<IActionResult> Delete(string id)
+        // DELETE: api/Subject/5
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteSubject(string id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var subject = await _context.Subjects
-                .Include(s => s.Course)
-                .FirstOrDefaultAsync(m => m.SubjectCode == id);
+            var subject = await _context.Subjects.FindAsync(id);
             if (subject == null)
             {
                 return NotFound();
             }
 
-            return View(subject);
-        }
-
-        // POST: Subject/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(string id)
-        {
-            var subject = await _context.Subjects.FindAsync(id);
-            if (subject != null)
-            {
-                _context.Subjects.Remove(subject);
-            }
-
+            _context.Subjects.Remove(subject);
             await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+
+            return NoContent();
         }
 
         private bool SubjectExists(string id)
